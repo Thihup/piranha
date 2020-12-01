@@ -35,6 +35,11 @@
             <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>cloud.piranha.resource</groupId>
+            <artifactId>piranha-resource-transformer-eclipse</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Piranha API -->
         <dependency>
             <groupId>cloud.piranha</groupId>
@@ -52,7 +57,7 @@
         <!-- Piranha Naming implementation -->
         <dependency>
             <groupId>cloud.piranha.naming</groupId>
-            <artifactId>piranha-naming-impl</artifactId>
+            <artifactId>piranha-naming-thread</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>

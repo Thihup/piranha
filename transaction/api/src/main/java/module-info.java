@@ -26,11 +26,10 @@
  */
 
 module cloud.piranha.transaction.api {
-    requires jakarta.enterprise.cdi.api;
-    requires jakarta.interceptor.api;
-
-    requires java.rmi;
-    requires java.transaction.xa;
 
     exports javax.transaction;
+    requires java.rmi;
+    requires java.transaction.xa;
+    requires jakarta.enterprise.cdi.api;
+    requires jakarta.interceptor.api;
 }

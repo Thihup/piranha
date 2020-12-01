@@ -44,8 +44,11 @@ import cloud.piranha.api.Piranha;
 import cloud.piranha.http.webapp.HttpWebApplicationServer;
 import cloud.piranha.extension.servlet.ServletExtension;
 import cloud.piranha.http.api.HttpServer;
-import cloud.piranha.naming.impl.DefaultInitialContextFactory;
+import cloud.piranha.naming.thread.ThreadInitialContextFactory;
+import cloud.piranha.resource.DefaultResourceManager;
 import cloud.piranha.resource.DirectoryResource;
+import cloud.piranha.resource.transformer.eclipse.EclipseTransformerResourceManagerWrapper;
+import cloud.piranha.resource.transformer.eclipse.EclipseTransformerResourceWrapper;
 import cloud.piranha.webapp.api.WebApplicationExtension;
 import cloud.piranha.webapp.impl.DefaultWebApplication;
 import cloud.piranha.webapp.impl.DefaultWebApplicationClassLoader;
@@ -104,7 +107,7 @@ public class ServerPiranha implements Piranha, Runnable {
      */
     public static void main(String[] arguments) {
         if (System.getProperty("java.naming.factory.initial") == null) {
-            System.setProperty("java.naming.factory.initial", DefaultInitialContextFactory.class.getName());
+            System.setProperty("java.naming.factory.initial", ThreadInitialContextFactory.class.getName());
         }
         INSTANCE = new ServerPiranha();
         INSTANCE.processArguments(arguments);
@@ -119,7 +122,7 @@ public class ServerPiranha implements Piranha, Runnable {
      * @throws IOException when an I/O error occurs.
      */
     private void extractZipInputStream(ZipInputStream zipInput, String filePath) throws IOException {
-        try ( BufferedOutputStream bufferOutput = new BufferedOutputStream(new FileOutputStream(filePath))) {
+        try (BufferedOutputStream bufferOutput = new BufferedOutputStream(new FileOutputStream(filePath))) {
             byte[] bytesIn = new byte[8192];
             int read;
             while ((read = zipInput.read(bytesIn)) != -1) {
@@ -135,7 +138,7 @@ public class ServerPiranha implements Piranha, Runnable {
         if (!webApplicationDirectory.exists()) {
             webApplicationDirectory.mkdirs();
         }
-        try ( ZipInputStream zipInput = new ZipInputStream(new FileInputStream(warFile))) {
+        try (ZipInputStream zipInput = new ZipInputStream(new FileInputStream(warFile))) {
             ZipEntry entry = zipInput.getNextEntry();
             while (entry != null) {
                 String filePath = webApplicationDirectory + File.separator + entry.getName();
@@ -203,35 +206,43 @@ public class ServerPiranha implements Piranha, Runnable {
                     File webAppDirectory = new File(webappsDirectory, contextPath);
                     extractWarFile(webapp, webAppDirectory);
 
-                    DefaultWebApplication webApplication = new DefaultWebApplication();
-                    webApplication.setAttribute(SERVER_PIRANHA, this);
-                    webApplication.addResource(new DirectoryResource(webAppDirectory));
-                    DefaultWebApplicationClassLoader classLoader = new DefaultWebApplicationClassLoader(webAppDirectory);
-                    webApplication.setClassLoader(classLoader);
-
-                    if (classLoader.getResource("/META-INF/services/" + WebApplicationExtension.class.getName()) == null) {
-                        DefaultWebApplicationExtensionContext extensionContext = new DefaultWebApplicationExtensionContext();
-                        extensionContext.add(ServletExtension.class);
-                        extensionContext.configure(webApplication);
-                    } else {
-                        DefaultWebApplicationExtensionContext extensionContext = new DefaultWebApplicationExtensionContext();
-                        ServiceLoader<WebApplicationExtension> serviceLoader = ServiceLoader.load(WebApplicationExtension.class, classLoader);
-                        extensionContext.add(serviceLoader.iterator().next());
-                        extensionContext.configure(webApplication);
-                    }
-
-                    if (contextPath.equalsIgnoreCase("ROOT")) {
-                        contextPath = "";
-                    } else if (!contextPath.startsWith("/")) {
-                        contextPath = "/" + contextPath;
-                    }
-                    webApplication.setContextPath(contextPath);
-                    webApplicationServer.addWebApplication(webApplication);
                     try {
-                        webApplication.initialize();
-                        webApplication.start();
-                    } catch (Exception e) {
-                        LOGGER.log(Level.SEVERE, e, () -> "Failed to initialize app " + webapp.getName());
+                        DefaultWebApplication webApplication = new DefaultWebApplication();
+
+                        ThreadInitialContextFactory.setInitialContext(webApplication.getNamingManager().getContext());
+
+                        webApplication.setAttribute(SERVER_PIRANHA, this);
+                        webApplication.addResource(new EclipseTransformerResourceWrapper(new DirectoryResource(webAppDirectory)));
+                        DefaultWebApplicationClassLoader classLoader = new DefaultWebApplicationClassLoader(new EclipseTransformerResourceManagerWrapper(new DefaultResourceManager()), webAppDirectory);
+                        webApplication.setClassLoader(classLoader);
+
+                        if (classLoader.getResource("/META-INF/services/" + WebApplicationExtension.class.getName()) == null) {
+                            DefaultWebApplicationExtensionContext extensionContext = new DefaultWebApplicationExtensionContext();
+                            extensionContext.add(ServletExtension.class);
+                            extensionContext.configure(webApplication);
+                        } else {
+                            DefaultWebApplicationExtensionContext extensionContext = new DefaultWebApplicationExtensionContext();
+                            ServiceLoader<WebApplicationExtension> serviceLoader = ServiceLoader.load(WebApplicationExtension.class, classLoader);
+                            extensionContext.add(serviceLoader.iterator().next());
+                            extensionContext.configure(webApplication);
+                        }
+
+                        if (contextPath.equalsIgnoreCase("ROOT")) {
+                            contextPath = "";
+                        } else if (!contextPath.startsWith("/")) {
+                            contextPath = "/" + contextPath;
+                        }
+                        webApplication.setContextPath(contextPath);
+                        webApplicationServer.addWebApplication(webApplication);
+                        
+                        try {
+                            webApplication.initialize();
+                            webApplication.start();
+                        } catch (Exception e) {
+                            LOGGER.log(Level.SEVERE, e, () -> "Failed to initialize app " + webapp.getName());
+                        }
+                    } finally {
+                        ThreadInitialContextFactory.removeInitialContext();
                     }
                 }
             }
