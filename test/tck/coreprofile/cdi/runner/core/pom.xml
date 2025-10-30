@@ -260,6 +260,34 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- Remove EmailableReporter from suite XML -->
+            <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>replacer</artifactId>
+                <version>1.5.3</version>
+                <executions>
+                    <execution>
+                        <phase>process-test-classes</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <file>target/suites/tck-core-suite.xml</file>
+                    <ignoreMissingFile>true</ignoreMissingFile>
+                    <replacements>
+                        <replacement>
+                            <token>&lt;listener class-name="org.testng.reporters.EmailableReporter"/&gt;</token>
+                            <value>&lt;!-- EmailableReporter removed - not available in TestNG 7.10+ --&gt;</value>
+                        </replacement>
+                        <replacement>
+                            <token>&lt;listener class-name="org.testng.reporters.TestHTMLReporter" /&gt;</token>
+                            <value>&lt;!-- TestHTMLReporter removed - not available in TestNG 7.10+ --&gt;</value>
+                        </replacement>
+                    </replacements>
+                </configuration>
+            </plugin>
         
             <!--
                      
@@ -320,10 +348,6 @@
                         <property>
                             <name>surefire.testng.verbose</name>
                             <value>1</value>
-                        </property>
-                        <property>
-                            <name>usedefaultlisteners</name>
-                            <value>false</value>
                         </property>
                     </properties>
                     <reuseForks>false</reuseForks>

@@ -28,12 +28,6 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
-        <dependency>
-            <groupId>cloud.piranha.test.tck.coreprofile.coreprofile</groupId>
-            <artifactId>installer</artifactId>
-            <version>${project.version}</version>
-            <type>pom</type>
-        </dependency>
         <!-- 
         
             The actual TCK jar containing the tests 
