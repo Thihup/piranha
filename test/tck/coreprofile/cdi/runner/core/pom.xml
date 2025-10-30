@@ -321,6 +321,10 @@
                             <name>surefire.testng.verbose</name>
                             <value>1</value>
                         </property>
+                        <property>
+                            <name>usedefaultlisteners</name>
+                            <value>false</value>
+                        </property>
                     </properties>
                     <reuseForks>false</reuseForks>
                     <systemPropertyVariables>
