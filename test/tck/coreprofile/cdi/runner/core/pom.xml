@@ -249,7 +249,7 @@
                                     <version>${cdi.tck.version}</version>
                                     <type>xml</type>
                                     <classifier>suite</classifier>
-                                    <overWrite>false</overWrite>
+                                    <overWrite>true</overWrite>
                                     <destFileName>tck-core-suite.xml</destFileName>
                                 </artifactItem>
                             </artifactItems>
@@ -260,33 +260,32 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- Remove EmailableReporter from suite XML -->
+            <!-- Remove EmailableReporter from suite XML using antrun -->
             <plugin>
-                <groupId>com.google.code.maven-replacer-plugin</groupId>
-                <artifactId>replacer</artifactId>
-                <version>1.5.3</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>process-test-classes</phase>
+                        <id>fix-testng-suite</id>
+                        <phase>process-test-resources</phase>
                         <goals>
-                            <goal>replace</goal>
+                            <goal>run</goal>
                         </goals>
+                        <configuration>
+                            <target>
+                                <replace file="target/suites/tck-core-suite.xml" 
+                                         token="&lt;listener class-name=&quot;org.testng.reporters.EmailableReporter&quot;/&gt;"
+                                         value="&lt;!-- EmailableReporter removed - not available in TestNG 7.10+ --&gt;" 
+                                         failOnNoReplacements="false"/>
+                                <replace file="target/suites/tck-core-suite.xml" 
+                                         token="&lt;listener class-name=&quot;org.testng.reporters.TestHTMLReporter&quot; /&gt;"
+                                         value="&lt;!-- TestHTMLReporter removed - not available in TestNG 7.10+ --&gt;" 
+                                         failOnNoReplacements="false"/>
+                                <echo message="Fixed TestNG suite XML to remove incompatible reporters"/>
+                            </target>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <file>target/suites/tck-core-suite.xml</file>
-                    <ignoreMissingFile>true</ignoreMissingFile>
-                    <replacements>
-                        <replacement>
-                            <token>&lt;listener class-name="org.testng.reporters.EmailableReporter"/&gt;</token>
-                            <value>&lt;!-- EmailableReporter removed - not available in TestNG 7.10+ --&gt;</value>
-                        </replacement>
-                        <replacement>
-                            <token>&lt;listener class-name="org.testng.reporters.TestHTMLReporter" /&gt;</token>
-                            <value>&lt;!-- TestHTMLReporter removed - not available in TestNG 7.10+ --&gt;</value>
-                        </replacement>
-                    </replacements>
-                </configuration>
             </plugin>
         
             <!--
