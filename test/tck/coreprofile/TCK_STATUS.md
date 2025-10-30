@@ -4,21 +4,48 @@
 
 This directory contains the complete infrastructure for running the Jakarta EE Core Profile Technology Compatibility Kit (TCK) against Piranha.
 
-## Current Status (as of recent runs)
+## Current Status (as of October 30, 2025 - Run #18949803595)
 
-Based on recent GitHub Actions workflow runs from the upstream `piranhacloud/piranha` repository:
+Based on the recent GitHub Actions workflow run:
 
-| TCK | Status | Notes |
-|-----|--------|-------|
-| **Annotations** | ✅ PASSING | All tests passing |
-| **CDI** | ❌ FAILING | Some tests failing |
-| **Core Profile** | ❌ FAILING | Some tests failing |
-| **Inject** | ✅ PASSING | All tests passing |
-| **JSON Binding** | ✅ PASSING | All tests passing |
-| **JSON Processing** | ✅ PASSING | All tests passing |
-| **REST** | ⏸️ TIMEOUT | Often cancelled due to 6-hour timeout |
+| TCK | Status | Test Results | Issues |
+|-----|--------|--------------|--------|
+| **Annotations** | ✅ PASSING | All tests passing | None |
+| **CDI** | ❌ FAILING | Build failure | TestNG 7.11.0 incompatibility - EmailableReporter class removed |
+| **Core Profile** | ❌ FAILING | 13 tests: 9 pass, 1 fail, 3 errors | ApplicationJsonpIT and ApplicationContextIT failures |
+| **Inject** | ✅ PASSING | All tests passing | None |
+| **JSON Binding** | ✅ PASSING | All tests passing | None |
+| **JSON Processing** | ✅ PASSING | All tests passing | None |
+| **REST** | ⏳ RUNNING | Tests in progress | Long-running (may timeout) |
 
-**Summary**: 4 out of 7 TCK suites are fully passing. The CDI TCK and Core Profile TCK have some failures that need to be addressed. The REST TCK occasionally times out and requires optimization or may need investigation.
+**Summary**: 4 out of 7 TCK suites are fully passing.
+
+### Detailed Failure Analysis
+
+#### CDI TCK Failure
+**Root Cause**: TestNG version incompatibility
+- **Error**: `Listener org.testng.reporters.EmailableReporter was not found in project's classpath`
+- **Cause**: TestNG 7.11.0 removed the EmailableReporter class that was present in 7.10.x
+- **Fix**: Downgrade TestNG from 7.11.0 to 7.10.2 in `test/tck/coreprofile/cdi/runner/core/pom.xml`
+
+#### Core Profile TCK Failures
+**Test Results**: 13 tests run - 9 passed, 1 failed, 3 errors
+
+1. **ApplicationJsonpIT.testCustomProvider** (FAILED)
+   - Error: `Failed to find JsonProvider: ee.jakarta.tck.core.json.CustomJsonProvider`
+   - Likely cause: Custom JSON provider not being properly registered
+
+2. **ApplicationJsonpIT.testUseCustomProvider** (ERROR)
+   - Error: `EmptyStack` exception
+   - Related to JSON provider stack management
+
+3. **ApplicationJsonpIT.testUseJsonWithCustomProvider** (ERROR)
+   - Error: `EmptyStack` exception
+   - Related to JSON provider stack management
+
+4. **ApplicationContextIT.testApplicationContextSharedBetweenJaxRsRequests** (ERROR)
+   - Error: `HTTP 500 Internal Server Error`
+   - Likely cause: Application context not being properly shared between JAX-RS requests
 
 ## TCK Components
 
