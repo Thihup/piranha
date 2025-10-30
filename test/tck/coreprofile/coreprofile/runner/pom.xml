@@ -28,12 +28,6 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
-        <dependency>
-            <groupId>cloud.piranha.test.tck.coreprofile.coreprofile</groupId>
-            <artifactId>installer</artifactId>
-            <version>${project.version}</version>
-            <type>pom</type>
-        </dependency>
         <!-- 
         
             The actual TCK jar containing the tests 
@@ -42,6 +36,17 @@
         <dependency>
             <groupId>jakarta.tck.coreprofile</groupId>
             <artifactId>core-profile-tck-impl</artifactId>
+            <version>${coreprofile.tck.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- 
+        
+            The JSONP extension containing custom JSON provider for tests
+        
+        -->
+        <dependency>
+            <groupId>jakarta.tck.coreprofile</groupId>
+            <artifactId>core-tck-jsonp-extension</artifactId>
             <version>${coreprofile.tck.version}</version>
             <scope>test</scope>
         </dependency>
