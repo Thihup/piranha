@@ -49,6 +49,28 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- Explicitly install core-tck-jsonp-extension artifact -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>install-core-tck-jsonp-extension</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <groupId>jakarta.tck.coreprofile</groupId>
+                            <artifactId>core-tck-jsonp-extension</artifactId>
+                            <version>${coreprofile.tck.version}</version>
+                            <packaging>jar</packaging>
+                            <file>${tck.home}/artifacts/core-tck-jsonp-extension-${coreprofile.tck.version}.jar</file>
+                            <generatePom>true</generatePom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

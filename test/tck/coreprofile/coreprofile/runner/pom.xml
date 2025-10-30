@@ -45,6 +45,17 @@
             <version>${coreprofile.tck.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- 
+        
+            The JSONP extension containing custom JSON provider for tests
+        
+        -->
+        <dependency>
+            <groupId>jakarta.tck.coreprofile</groupId>
+            <artifactId>core-tck-jsonp-extension</artifactId>
+            <version>${coreprofile.tck.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
